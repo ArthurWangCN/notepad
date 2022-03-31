@@ -119,6 +119,7 @@ cd /usr/local/nginx/sbin/
 > 解决：安装net-tool 包：yum install net-tools
 >
 > ./nginx -s quit:此方式停止步骤是待nginx进程处理任务完毕进行停止。
+> 
 > ./nginx -s stop:此方式相当于先查出nginx进程id再使用kill命令强制杀掉进程。
 >
 > 查询nginx进程：`ps aux|grep nginx`
