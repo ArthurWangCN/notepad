@@ -332,3 +332,110 @@ Vue中有个独特的编译器模块，称为“compiler”，它的主要作用
 
 在Vue中编译器会先对template进行解析，这一步称为parse，结束之后会得到一个JS对象，我们成为抽象语法树AST，然后是对AST进行深加工的转换过程，这一步成为transform，最后将前面得到的AST生成为JS代码，也就是render函数。
 
+
+Vue 3.0设计目标？做了哪些优化？
+
+1. Vue3的最大设计目标是替代Vue2，为了实现这一点，Vue3在以下几个方面做了很大改进，如：易用性、框架性能、扩展性、可维护性、开发体验等；
+2. 易用性方面主要是API简化，比如v-model在Vue3中变成了Vue2中v-model和sync修饰符的结合体，用户不用区分两者不同，也不用选择困难。类似的简化还有用于渲染函数内部生成VNode的h(type, props, children)，其中props不用考虑区分属性、特性、事件等，框架替我们判断，易用性大增；
+3. 开发体验方面，新组件Teleport传送门、Fragments 、Suspense等都会简化特定场景的代码编写，SFC Composition API语法糖更是极大提升我们开发体验；
+4. 扩展性方面提升如独立的reactivity模块，custom renderer API等；
+5. 可维护性方面主要是Composition API，更容易编写高复用性的业务逻辑。还有对TypeScript支持的提升；
+   性能方面的改进也很显著，例如编译期优化、基于Proxy的响应式系统。
+
+
+
+
+
+**vue性能优化**
+
++ 主要从Vue代码编写层面说一些优化手段，例如：代码分割、服务端渲染、组件缓存、长列表优化等
+
++ 最常见的路由懒加载：有效拆分App尺寸，访问时才异步加载
+
+  ```js
+  const router = createRouter({
+    routes: [
+      // 借助webpack的import()实现异步组件
+      { path: '/foo', component: () => import('./Foo.vue') }
+    ]
+  })
+  ```
+
++ keep-alive缓存页面：避免重复创建组件实例，且能保留缓存组件状态
+
+  ```html
+  <router-view v-slot="{ Component }">
+    <keep-alive>
+      <component :is="Component"></component>
+    </keep-alive>
+  </router-view>
+  ```
+
++ 使用v-show复用DOM：避免重复创建组件
+
+  ```html
+  <template>
+    <div class="cell">
+      <!-- 这种情况用v-show复用DOM，比v-if效果好 -->
+      <div v-show="value" class="on">
+        <Heavy :n="10000"/>
+      </div>
+      <section v-show="!value" class="off">
+        <Heavy :n="10000"/>
+      </section>
+    </div>
+  </template>
+  ```
+
++ v-for 遍历避免同时使用 v-if：实际上在Vue3中已经是个错误写法
+
+  ```vue
+  <template>
+      <ul>
+        <li
+          v-for="user in activeUsers"
+          <!-- 避免同时使用，vue3中会报错 -->
+          <!-- v-if="user.isActive" -->
+          :key="user.id">
+          {{ user.name }}
+        </li>
+      </ul>
+  </template>
+  <script>
+    export default {
+      computed: {
+        activeUsers: function () {
+          return this.users.filter(user => user.isActive)
+        }
+      }
+    }
+  </script>
+  ```
+
++ v-once和v-memo：
+
+  ```vue
+  <!-- 不再变化的数据使用v-once -->
+  <span v-once>This will never change: {{msg}}</span>
+  <!-- 按条件跳过更新时使用v-momo：下面这个列表只会更新选中状态变化项 -->
+  <div v-for="item in list" :key="item.id" v-memo="[item.id === selected]">
+    <p>ID: {{ item.id }} - selected: {{ item.id === selected }}</p>
+    <p>...more child nodes</p>
+  </div>
+  ```
+
++ 长列表性能优化：如果是大数据长列表，可采用虚拟滚动，只渲染少部分区域的内容
+
++ 事件的销毁：Vue 组件销毁时，会自动解绑它的全部指令及事件监听器，但是仅限于组件本身的事件。
+
++ 图片懒加载
+
++ 第三方插件按需引入
+
++ 子组件分割策略：较重的状态组件适合拆分
+
++ 服务端渲染/静态网站生成：SSR/SSG
+
+
+
+
