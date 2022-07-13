@@ -2,5 +2,5 @@
 
 ## 概念篇
 
-+ [闭包的理解](https://github.com/ArthurWangCN/notepad/issues/1)
-+ [原型链和继承](https://github.com/ArthurWangCN/notepad/issues/2)
+👉 [闭包的理解](https://github.com/ArthurWangCN/notepad/issues/1)
+👉 [继承与原型链](https://github.com/ArthurWangCN/notepad/issues/2)
