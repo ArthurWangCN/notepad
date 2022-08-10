@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    const PENDING = 'pending';
+    const FULFILLED = 'fulfilled'
+    const REJECTED = 'rejected'
+
+    class MyPromise {
+      constructor(executor) {
+        executor(this.resolve, this.reject)
+      }
+
+      status = PENDING;
+
+      value = null;
+      reason = null;
+
+      onFulfilledCallback = [];
+      onRejectedCallback = [];
+
+      resolve = (value) => {
+        if (this.status === PENDING) {
+          this.status = FULFILLED
+          this.value = value
+          this.onFulfilledCallback.map(item => {
+            item(this.value)
+          })
+        }
+      }
+
+      reject = (reason) => {
+        if (this.status === PENDING) {
+          this.status = REJECTED
+          this.reason = reason
+          this.onFulfilledCallback.map(item => {
+            item(this.reason)
+          })
+        }
+      }
+
+      then(onFulfilled, onRejected) {
+        let p = new MyPromise((resolve, reject) => {
+          if (this.status === FULFILLED) {
+            queueMicrotask(() => {
+              let x = onFulfilled(this.value);
+              resolvePromise(p, x, resolve, reject)
+            })
+          } else if (this.status === REJECTED) {
+            onRejected(this.reason);
+          } else if (this.status === PENDING) {
+            this.onFulfilledCallback.push(onFulfilled)
+            this.onRejectedCallback.push(onRejected)
+          }
+        })
+        return p;
+      }
+    }
+
+    function resolvePromise(p, x, resolve, reject) {
+      console.log('x: ', x);
+      console.log('p: ', p);
+      if (p === x) {
+        console.log('???');
+        return reject(new TypeError('Chaining cycle detected for promise #<Promise>'))
+      }
+      if (x instanceof MyPromise) {
+        x.then(resolve, reject);
+      } else {
+        resolve(x);
+      }
+    }
+  </script>
+</body>
+
+</html>
