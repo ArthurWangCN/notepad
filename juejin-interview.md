@@ -400,21 +400,94 @@ v-for中key的作用主要是为了高效的更新虚拟DOM,使用key来给每�
 
 ## Vue
 
-- computed和watch的区别
-- data为什么是个函数，而不是对象
-- watch能监听computed的属性吗
-- vue的响应式原理
-- vue的生命周期
-- mounted拿到数据可以后可以直接获取dom吗
-- nextTick原理
-- vue模板（template）里为什么不能使用多个头结点？
-- vuex为什么同时设计mutation和action？只设计一个行不行？
-- vue2和 vue3 在数据绑定这一块有什么区别？
-- vue挂载和卸载父子组件生命周期钩子执行顺序
-- vue的优化方案（等同于如何编写可读性高、易维护且高性能的vue代码）
-- keep-alive的原理，使用有什么问题？如何解决？
+**computed和watch的区别**
+
+- computed是计算属性，watch是监听一个值的变化，然后执行对应的回调。
+- computed有缓存
+- computed默认第一次加载的时候就开始监听；watch默认第一次加载不做监听，如果需要第一次加载做监听，添加immediate属性，设置为true
+
+**data为什么是个函数，而不是对象**
+
+vue组件可能会有很多个实例，采用函数返回一个全新data形式，使每个实例对象的数据不会受到其他实例对象数据的污染
+
+**watch能监听computed的属性吗**
+
+watch是属性监听器,一般用来监听属性的变化(也可以用来监听计算属性函数)并做一些逻辑
+
+**vue的响应式原理**
+
+当一个Vue实例创建时，Vue会遍历 data 中的属性，用 Object.defineProperty（vue3.0使用proxy ）将它们转为 getter/setter，并且在内部追踪相关依赖，在属性被访问和修改时通知变化。
+
+每个组件实例都有相应的 watcher 程序实例，它会在组件渲染的过程中把属性记录为依赖，之后当依赖项的 setter 被调用时，会通知 watcher 重新计算，从而致使它关联的组件得以更新。
+
+**vue的生命周期**
 
 
+
+**mounted拿到数据可以后可以直接获取dom吗**
+
+
+
+**nextTick原理**
+
+ nextTick作用：在下次DOM更新循环结束之后执行的延迟回调
+
+首先nextTick并不是浏览器本身提供的一个异步API，而是Vue中，用过由浏览器本身提供的原生异步API封装而成的一个异步封装方法。
+
+它对于浏览器异步API的选用规则如下，Promise存在取由Promise.then，不存在Promise则取MutationObserver，MutationObserver不存在setImmediate，setImmediate不存在最后取setTimeout来实现。
+
+
+nextTick即有可能是微任务，也有可能是宏任务，从优先去Promise和MutationObserver可以看出nextTick优先微任务，其次是setImmediate和setTimeout宏任务。
+
+
+
+
+**vue模板（template）里为什么不能使用多个头结点？**
+
+保证了内部的内容有效但不会被渲染。vue-cli 本质上是会把 .vue 文件经过 webpack 配置打包成一系列的 js/css 文件注入到一个 html 文件中交给浏览器进行解释执行。
+
+这也就是说，每一个 .vue 文件都会是一个 Vue 的实例，而 <template> 标签中的内容就是 Vue 实例接管造成虚拟 DOM 的那部份内容。若是在 template 下有多个 div，那么虚拟 DOM 树就没办法生成了。
+
+1. 从查找和遍历的角度来讲，若是有多个根，那么咱们的查找和遍历的效率会很低。
+2. 若是一个树有多个根，说明能够优化，确定会有一个节点是能够访问到全部的节点，那这个节点就会成为新的根节点。
+3. 再从 Vue 自己来讲，若是说一个组件有多个入口多个根，那不就意味着你的组件还能够进一步拆分红多个组件，进一步组件化，下降代码之间的耦合程度。
+
+**vuex为什么同时设计mutation和action？只设计一个行不行？**
+
+区分 actions 和 mutations 并不是为了解决竞态问题，而是为了能用 devtools 追踪状态变化。
+
+事实上在 vuex 里面 actions 只是一个架构性的概念，并不是必须的，说到底只是一个函数，你在里面想干嘛都可以，只要最后触发 mutations 就行。异步竞态怎么处理那是用户自己的事情。vuex 真正限制你的只有 mutations 必须是同步的这一点。
+
+同步的意义在于这样每一个 mutations 执行完成后都可以对应到一个新的状态（和 reducer 一样），这样 devtools 就可以打个 snapshot 存下来，然后就可以随便 time-travel 了。
+
+**vue2和 vue3 在数据绑定这一块有什么区别？**
+
+Vue2 使用Object.definedProperty()进行数据劫持，结合发布订阅方式。
+
+- 缺点：只能劫持对象的属性；只能监听到对象属性已有数据是否被修改；无法监听到对象属性的新增和删除；无法监听到数组的一些变化（改下标之类的）。
+
+Vue3使用Proxy代理，使用ref 或者reactive 将数据转化为响应式数据。
+
+- 优点：可以劫持整个对象；可以劫持属性的访问新增删除；多层嵌套也可以；可以监听数组变化
+- 缺点：兼容性问题
+
+https://blog.csdn.net/anr_safely/article/details/125936820
+
+**vue挂载和卸载父子组件生命周期钩子执行顺序**
+
+**vue的优化方案（等同于如何编写可读性高、易维护且高性能的vue代码）**
+
+按需加载UI组件库 、删除没用的依赖、删除无用的console、处理打包后的sourcemap、首屏加载优化、按需加载
+
+**keep-alive的原理，使用有什么问题？如何解决？**
+
+keep-alive是Vue中内置的一个抽象组件。它自身不会渲染一个 DOM 元素，也不会出现在父组件链中。当它包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们。
+
+当引入keep-alive的时候，页面第一次进入，钩子的触发顺序created-> mounted-> activated，退出时触发deactivated。当再次进入（前进或者后退）时，只触发activated。
+
+Vue.js内部将DOM节点抽象成了一个个的VNode节点，keep-alive组件的缓存也是基于VNode节点的而不是直接存储DOM结构。它将满足条件（pruneCache与pruneCache）的组件在cache对象中缓存起来，在需要重新渲染的时候再将vnode节点从cache对象中取出并渲染。
+
+https://blog.csdn.net/weixin_43804496/article/details/125523619
 
 
 
@@ -445,13 +518,66 @@ v-for中key的作用主要是为了高效的更新虚拟DOM,使用key来给每�
 
 ## Webpack
 
-- 为什么webpack打包慢？为什么vite会比webpack快？如果想提高webpack速度，应该怎么做？
-- 说说webpack编译打包的流程
-- 说一下对tree-shaking的了解，对CommonJS和ESM都可以用tree-shaking吗
-- webpack中plugin和laoder的区别，它们的执行时机，以及常用的plugin和loader
-- css-loader的作用是什么？不使用css-loader行不行
+**为什么webpack打包慢？为什么vite会比webpack快？如果想提高webpack速度，应该怎么做？**
 
+- webpack开发构建的时候，他会默认构建你的所有页面，抓取整个应用以后提供服务，这就会导致，在你的项目中任何一个地方有一个错误（尽管你当前还未进入这个页面），这都会影响构建速度，因此你的项目越大，webpack构建时间就越长，启动速度就越慢。
+- vite并不会在一开始就构建你的项目，而是会把应用分为【依赖】和【源码】，对于源码部分 他会根据【路由】来进行拆分，只构建一开始就必须构建的内容，同时vite以【原生ESM】的方式为浏览器提供源码，让浏览器承担了部分打包的工作，也正是因为这样的机制，不管你的项目有多大，他会先构建一开始必须要构建的内容，因此大大提升了构建的速度。
 
+提高webpack速度：
+
+1. 多入口情况下，使用CommonsChunkPlugin来提取公共代码；
+2. 通过externals配置来提取常用库
+3. 利用DllPlugin和DllReferencePlugin预编译资源模块
+4. 使用Happypack 实现多线程加速编译
+5. 使用webpack-uglify-parallel来提升uglifyPlugin的压缩速度。
+6. 使用Tree-shaking和Scope Hoisting来剔除多余代码
+
+**说说webpack编译打包的流程**
+
+1. 初始化参数阶段：从我们配置的`webpack.config.js`中读取到对应的配置参数和`shell`命令中传入的参数进行合并得到最终打包配置参数。
+2. 开始编译准备阶段：这一步我们会通过调用webpack()方法返回一个compiler方法，创建我们的compiler对象，并且注册各个Webpack Plugin。找到配置入口中的entry代码，调用compiler.run()方法进行编译。
+3. 模块编译阶段：从入口模块进行分析，调用匹配文件的loaders对文件进行处理。同时分析模块依赖的模块，递归进行模块编译工作。
+4. 完成编译阶段：在递归完成后，每个引用模块通过loaders处理完成同时得到模块之间的相互依赖关系。
+5. 输出文件阶段：整理模块依赖关系，同时将处理后的文件输出到ouput的磁盘目录中。
+
+https://weibo.com/ttarticle/p/show?id=2309634737226558014172
+
+**说一下对tree-shaking的了解，对CommonJS和ESM都可以用tree-shaking吗**
+
+- 功能是移除 JavaScript 上下文中未引用的代码。
+- 原理是依赖于 ES6 模块系统中的静态结构特性。即 import 和 export。
+
+在 webpack 中使用 Tree-shaking 的三步：
+
+1. 找到未使用的代码：模块必须使用 ES6 的 import 导入 和 export 导出，以此找出未使用的代码。
+2. 标记无副作用：通过 package.json 的 sideEffects 属性来标记为"无副作用"，可以安全地删除。
+3. 安全删除：引入一个能够删除未引用代码(dead code)的压缩工具(minifier)（例如 UglifyJSPlugin）。
+
+ESM静态引入，编译时引入；Commonjs动态引入，执行时引入。
+
+只有ESM才能静态分析，实现tree-shaking
+
+**webpack中plugin和laoder的区别，它们的执行时机，以及常用的plugin和loader**
+
+- loader 是文件加载器，能够加载资源文件，并对这些文件进行一些处理，诸如编译、压缩等，最终一起打包到指定的文件中
+- plugin 赋予了 webpack 各种灵活的功能，例如打包优化、资源管理、环境变量注入等，目的是解决 loader 无法实现的其他事
+
+运行时机上的区别：
+
+- loader 运行在打包文件之前
+- plugins 在整个编译周期都起作用
+
+在Webpack 运行的生命周期中会广播出许多事件，Plugin 可以监听这些事件，在合适的时机通过Webpack提供的 API改变输出结果
+
+对于loader，实质是一个转换器，将A文件进行编译形成B文件，操作的是文件，比如将A.scss或A.less转变为B.css，单纯的文件转换过程
+
+https://www.yisu.com/zixun/458222.html
+
+**css-loader的作用是什么？不使用css-loader行不行**
+
+css-loader的作用是帮我们分析出各个css文件之间的关系，把各个css文件合并成一段css；
+
+css-loader是必需的，它的作用是解析CSS文件，包括解析@import等CSS自身的语法。它的作用也仅仅是解析CSS文件，它会把CSS文件解析后，以字符串的形式打包到JS文件中。不过，此时的CSS样式并不会生效，因为我们需要把CSS插入到html里才会生效。
 
 
 
