@@ -198,7 +198,163 @@ export default defineComponent({
 
 这里需要注意绑定的函数要使用箭头函数
 
+### 事件修饰符
+事件修饰符可以使用 vue 提供的withModifiers进行设置,如.self
 
+```js
+import { defineComponent, ref, withModifiers } from "vue";
+export default defineComponent({
+  name: "app",
+  setup(props, ctx) {
+    return () => (
+      <div
+        onClick={withModifiers(() => {
+          console.log("我被点击");
+        }, ["self"])}
+      >
+        点击
+      </div>
+    );
+  },
+});
+```
+
+但是对于 .passive、.capture 和 .once 事件修饰符，使用withModifiers并不生效,这里可以采用链式驼峰的形式进行设置,如.once
+
+```js
+import { defineComponent } from "vue";
+export default defineComponent({
+  name: "app",
+  setup(props, ctx) {
+    return () => (
+      <div
+        onClickOnce={() => {
+          console.log("我被点击");
+        }}
+      >
+        点击
+      </div>
+    );
+  },
+});
+```
+
+### v-model
+v-model 在绑定modelValue或者在input标签中使用的时候其实和 SFC 差不多
+
+```js
+import { defineComponent, ref } from "vue";
+export default defineComponent({
+  name: "app",
+  setup(props, ctx) {
+    const num = ref(0);
+    return () => <input type="text" v-model={num.value} />;
+  },
+});
+```
+
+当在组件中使用绑定自定义事件的时候和 SFC 就有了区别,比如绑定一个msg,在 SFC 中直接v-model:msg即可,而在 JSX 中则需要使用一个数组。我们直接看下面两个例子你就会明白,假如我们组件名叫ea_button,这个组件发送了一个update:changeMsg的方法,父组件的msg变量需要接受update:changeMsg函数传来的参数
+
+SFC:
+
+```html
+<ea-button v-model:changeMsg="msg"></ea-button>
+```
+
+jsx:
+
+```html
+<ea-button v-model={[msg.value, 'changeMsg']}></ea-button>
+```
+
+### 插槽
+
+先看下默认插槽,我们定义一个子组件 Child 接收一个默认插槽
+
+```js
+import { defineComponent, ref } from "vue";
+const Child = (props, { slots }) => {
+  return <div>{slots.default()}</div>;
+};
+
+export default defineComponent({
+  name: "app",
+  setup(props, ctx) {
+    const num = ref(0);
+    return () => <Child>默认插槽</Child>;
+  },
+});
+```
+
+如果想使用具名插槽则需要在父组件中传入一个对象,对象的 key 值就是插槽的名字
+
+```js
+import { defineComponent, ref } from "vue";
+//@ts-ignore
+const Child = (props, { slots }) => {
+  return (
+    <div>
+      <div>{slots.slotOne()}</div>
+      <div>{slots.slotTwo()}</div>
+      <div>{slots.slotThree()}</div>
+    </div>
+  );
+};
+
+export default defineComponent({
+  name: "app",
+  setup(props, ctx) {
+    const num = ref(0);
+    return () => (
+      <Child>
+        {{
+          slotOne: () => <div>插槽1</div>,
+          slotTwo: () => <div>插槽2</div>,
+          slotThree: () => <div>插槽3</div>,
+        }}
+      </Child>
+    );
+  },
+});
+```
+
+如果我们想在父组件的插槽内容中获取到子组件中的变量,此时便涉及到了作用域插槽。在 JSX 中我们可以在子组件调用默认插槽或者某个具名插槽的时候传入参数,如下面的插槽一为例
+
+```js
+import { defineComponent, ref } from "vue";
+//@ts-ignore
+const Child = (props, { slots }) => {
+  const prama1 = "插槽1";
+  return (
+    <div>
+      <div>{slots.slotOne(prama1)}</div>
+      <div>{slots.slotTwo()}</div>
+      <div>{slots.slotThree()}</div>
+    </div>
+  );
+};
+
+export default defineComponent({
+  name: "app",
+  setup(props, ctx) {
+    return () => (
+      <Child>
+        {{
+          slotOne: (pramas: string) => <div>{pramas}</div>,
+          slotTwo: <div>插槽2</div>,
+          slotThree: <div>插槽3</div>,
+        }}
+      </Child>
+    );
+  },
+});
+```
+
+我们可以看到prama1=插槽1是子组件中的变量,我们通过slots.slotOne(prama1)将其传到了父组件的插槽内容中
+
+## 最后
+
+关于 Vue3 中 JSX 的语法就介绍这么多,其实如果你熟悉 Vue 的 SFC 语法还是能很快上手 JSX 语法的,因为它们也就是写法上有一些区别,用法上还是基本一样的。至于选择哪一种写法还是取决于我们自己,我的建议是二者兼得,你可以根据实现不同的功能采用不同的写法。当然,如果你是一个团队项目,你还是乖乖听你领导的吧。
 
 
 
