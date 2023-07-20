@@ -2,6 +2,14 @@ ResizeObserver
 
 > ResizeObserver 接口监视 Element 内容盒或边框盒或者 SVGElement 边界尺寸的变化。
 
+方法
+
+- ResizeObserver.disconnect()：取消特定观察者目标上所有对 Element 的监听。
+- ResizeObserver.observe()：开始对指定 Element 的监听。
+- ResizeObserver.unobserve()：结束对指定 Element 的监听。
+
+
+
 
 在 JavaScript 中监听某个 <div> 元素尺寸变化，你可以使用 ResizeObserver API。ResizeObserver 是浏览器原生的 API，可以用来观察指定元素的大小调整。
 
