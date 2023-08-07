@@ -1,5 +1,7 @@
 基于vue3 + element plus，实现类似chatdoc提问时超出到icon时另起一行。
 
+原理：在输入的时候，创建一个canvas，并且绘制文字，计算文字的宽度，当宽度超过固定宽度时，添加一个 margin-bottom。
+
 ```html
 <div class="bottom-input">
   <el-input
