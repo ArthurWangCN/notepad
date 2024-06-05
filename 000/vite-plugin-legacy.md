@@ -24,6 +24,10 @@ vite的polyfill分为 modern polyfill(modernPolyfills属性)和 legacy polyfill(
 
 开发者则需要使用此插件配置相应的兼容处理，如：
 
+```shell
+npm i @vitejs/plugin-legacy
+```
+
 ```ts
 // vite.config.js
 import legacy from '@vitejs/plugin-legacy'
